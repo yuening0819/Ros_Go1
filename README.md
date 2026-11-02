@@ -1,18 +1,20 @@
 # Ros_Go1
 
-Go1 录制、相机校正与离线建图项目备份。
+Go1 录制、相机校正与离线建图项目完整备份。
 
-## 完整备份
+## 下载完整备份
 
-请到 [完整备份 Release](https://github.com/yuening0819/Ros_Go1/releases/tag/backup-20261102) 下载 `VINS-Nav_Full_Backup_20261102.tar.gz`，以及同名 SHA-256 校验文件。
+[打开完整备份 Release](https://github.com/yuening0819/Ros_Go1/releases/tag/backup-20261102)。因网络中断风险，1.31 GB 原压缩包分为 20 个分卷上传，合并后与原包逐字节一致。
 
-备份包含本地源码、录像、标定资料、地图数据库、建图结果和项目内已有的第三方二进制依赖。解压后阅读 `BACKUP_README.txt`。
+最方便的方法：下载 Release 中的 `restore_backup.py` 到一个空文件夹，然后执行：
 
 ```bash
-sha256sum -c VINS-Nav_Full_Backup_20261102.tar.gz.sha256
+python3 restore_backup.py --download
 tar -xzf VINS-Nav_Full_Backup_20261102.tar.gz
 ```
 
-最新完整视频对比网页：解压目录中的 `VINS-Nav/go1/mapping/20261102_video5_full_comparison/index.html`。
+脚本会自动下载各卷，校验 SHA-256 并恢复原压缩包；不会自动解压或覆盖已有的不同内容文件。也可手动下载全部分卷后运行 `python3 restore_backup.py`。
 
-这是项目文件备份，不是完整系统镜像；部分系统依赖仍需准备。单目建图结果是实验性特征投影，没有真实米制尺度，不能直接用于导航。
+备份包含源码、录像、标定资料、地图数据库、建图网页和项目内已有的第三方二进制依赖。解压后阅读 `BACKUP_README.txt`。
+
+最新对比网页：`VINS-Nav/go1/mapping/20261102_video5_full_comparison/index.html`。单目结果仅供实验查看，没有真实米制尺度，不能直接用于导航。
