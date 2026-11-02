@@ -1,12 +1,18 @@
 # Ros_Go1
 
+## 直接下载完整压缩包
+
+[下载完整备份（1.31 GB）](https://github.com/yuening0819/Ros_Go1/releases/download/backup-20261102/VINS-Nav_Full_Backup_20261102.tar.gz)
+
+已在 GitHub 服务器合并并通过 SHA-256 校验，下载此单个文件即可，无需手动合并。
+
 Go1 录制、相机校正与离线建图项目完整备份。
 
-## 下载完整备份
+## 分卷备用下载
 
 [打开完整备份 Release](https://github.com/yuening0819/Ros_Go1/releases/tag/backup-20261102)。因网络中断风险，1.31 GB 原压缩包分为 20 个分卷上传，合并后与原包逐字节一致。
 
-最方便的方法：下载 Release 中的 `restore_backup.py` 到一个空文件夹，然后执行：
+如需使用备用分卷：下载 Release 中的 `restore_backup.py` 到一个空文件夹，然后执行：
 
 ```bash
 python3 restore_backup.py --download
