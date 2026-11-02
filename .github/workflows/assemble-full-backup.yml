@@ -1,0 +1,76 @@
+name: Assemble complete Go1 backup
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: assemble-go1-backup-20261102
+  cancel-in-progress: false
+jobs:
+  assemble:
+    if: github.repository == 'yuening0819/Ros_Go1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Download and verify the known restore script
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir backup
+          cd backup
+          gh release download backup-20261102 --pattern restore_backup.py
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import hashlib
+          expected = 'ab92f0180ae320eb7ba01adee042fbeaedbbd416d69cf180e6ac331ddfcfe62f'
+          actual = hashlib.sha256(Path('restore_backup.py').read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit('Restore script checksum mismatch')
+          PYCODE
+      - name: Restore the original archive from verified parts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd backup
+          python3 restore_backup.py --download
+      - name: Publish the verified complete archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd backup
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          import hashlib, json, os, subprocess
+          repo = os.environ['GH_REPO']
+          tag = 'backup-20261102'
+          name = 'VINS-Nav_Full_Backup_20261102.tar.gz'
+          expected = 'sha256:de38daae1ca2bdce2585d98aec957b1b7764b062438fa6b6c5b99849b4f96ba6'
+          h = hashlib.sha256()
+          with Path(name).open('rb') as f:
+              for chunk in iter(lambda: f.read(4*1024*1024), b''):
+                  h.update(chunk)
+          if 'sha256:' + h.hexdigest() != expected or Path(name).stat().st_size != 1309186109:
+              raise SystemExit('Full archive checksum mismatch')
+          def release():
+              return json.loads(subprocess.check_output(['gh', 'api', f'repos/{repo}/releases/tags/{tag}']))
+          info = release()
+          existing = next((a for a in info['assets'] if a['name'] == name), None)
+          if existing and existing['state'] == 'uploaded':
+              if existing.get('digest') != expected or existing['size'] != 1309186109:
+                  raise SystemExit('An existing complete asset conflicts; refusing overwrite')
+          else:
+              if existing:
+                  if existing['state'] not in ['starter', 'open']:
+                      raise SystemExit('Unexpected existing asset state')
+                  subprocess.run(['gh', 'api', '--method', 'DELETE', f"repos/{repo}/releases/assets/{existing['id']}"], check=True)
+              subprocess.run(['gh', 'release', 'upload', tag, name], check=True)
+          asset = next(a for a in release()['assets'] if a['name'] == name)
+          if asset['state'] != 'uploaded' or asset.get('digest') != expected or asset['size'] != 1309186109:
+              raise SystemExit('GitHub asset verification failed')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write('Complete backup verified: ' + asset['browser_download_url'] + '\n')
+          print(asset['browser_download_url'])
+          PYCODE
